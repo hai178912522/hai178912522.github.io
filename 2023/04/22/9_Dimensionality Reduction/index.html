@@ -1,0 +1,208 @@
+<!DOCTYPE html><html lang="en" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Hexo | Hexo</title><meta name="author" content="John Doe"><meta name="copyright" content="John Doe"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="这是一篇关于单细胞RNA测序（scRNA-seq）数据降维处理的文章。scRNA-seq产生的数据集维度非常高，这导致“Curse of dimensionality”的问题。文章介绍了几种常用的降维方法，包括主成分分析（PCA）、t-SNE和UMAP。其中，t-SNE和UMAP的表现最好，PCA用于选择重要的主成分。文章同时提到了如何通过降维后的数据进行可视化，并展示了几个实例。  如前所述，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/2023/04/22/9_Dimensionality%20Reduction/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="这是一篇关于单细胞RNA测序（scRNA-seq）数据降维处理的文章。scRNA-seq产生的数据集维度非常高，这导致“Curse of dimensionality”的问题。文章介绍了几种常用的降维方法，包括主成分分析（PCA）、t-SNE和UMAP。其中，t-SNE和UMAP的表现最好，PCA用于选择重要的主成分。文章同时提到了如何通过降维后的数据进行可视化，并展示了几个实例。  如前所述，">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2023-04-22T13:01:20.122Z">
+<meta property="article:modified_time" content="2023-04-22T13:10:11.110Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://example.com/2023/04/22/9_Dimensionality%20Reduction/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  }
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Hexo',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-04-22 21:10:11'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><hr/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="Hexo"><span class="site-name">Hexo</span></a></span><div id="menus"><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">No title</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2023-04-22T13:01:20.122Z" title="Created 2023-04-22 21:01:20">2023-04-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2023-04-22T13:10:11.110Z" title="Updated 2023-04-22 21:10:11">2023-04-22</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>这是一篇关于单细胞RNA测序（scRNA-seq）数据降维处理的文章。scRNA-seq产生的数据集维度非常高，这导致“<strong>Curse of dimensionality</strong>”的问题。文章介绍了几种常用的降维方法，包括主成分分析（PCA）、t-SNE和UMAP。其中，t-SNE和UMAP的表现最好，PCA用于选择重要的主成分。文章同时提到了如何通过降维后的数据进行可视化，并展示了几个实例。</p>
+</blockquote>
+<p>如前所述，scRNA-seq 是一种高通量测序技术，能够生成高维度的细胞数和基因数数据集。这立即指出了 scRNA-seq 数据受到“维度灾难”的影响。</p>
+<blockquote>
+<p><strong>Curse of dimensionality</strong><br>“维度灾难”最早由R.贝尔曼提出[Bellman et al.，1957]，它描述了一个理论上高维数据包含更多信息的问题，但在实践中却不是这样。高维数据通常包含更多的噪声和冗余，因此添加更多信息对于下游分析步骤并没有好处。”</p>
+</blockquote>
+<p>并非所有基因都具有信息量，并且对于基于其表达谱的细胞类型聚类任务来说很重要。我们已经旨在通过特征选择减少数据的维度，接下来可以使用降维算法进一步降低单细胞RNA测序数据的维度。这些算法是预处理中减少数据复杂性和可视化的重要步骤。已经开发了多种降维技术并用于单细胞数据分析。<br /></p>
+<figure>     <img src="https://typorapicz.oss-cn-hangzhou.aliyuncs.com/img/1681971761683-a9e0c0d8-c266-44aa-8b9f-389701e9e713.png" alt="图片描述">     <figcaption>图9.1：降维将高维数据嵌入到一个低维空间中。低维表示仍然捕捉到数据的基本结构，同时将维度尽可能降低。在这里，我们将一个三维对象投影到了二维空间中进行可视化。</figcaption> </figure>
+
+<p>邢等人在一项独立比较中比较了10种不同降维方法的稳定性、准确性和计算成本 [项等人，2021]。他们建议使用t-分布随机邻居嵌入（t-SNE），因为它表现出最佳的整体性能。均匀流形逼近和投影（UMAP）表现出最高的稳定性，并且最好地分离了原始细胞群体。另一个值得一提的降维方法是主成分分析（PCA)，它仍然被广泛使用。<br />通常情况下，如果选择了特定的初始化选项，t-SNE和UMAP非常健壮且大多数情况下是等效的 [Kobak和Berens，2019]。</p>
+<p>所有上述方法都在scanpy中实现。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> scanpy <span class="keyword">as</span> sc</span><br><span class="line"></span><br><span class="line">sc.settings.verbosity = <span class="number">0</span></span><br><span class="line">sc.settings.set_figure_params(</span><br><span class="line">    dpi=<span class="number">80</span>,</span><br><span class="line">    facecolor=<span class="string">&quot;white&quot;</span>,</span><br><span class="line">    frameon=<span class="literal">False</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">adata = sc.read(</span><br><span class="line">    filename=<span class="string">&quot;s4d8_feature_selection.h5ad&quot;</span>,</span><br><span class="line">    backup_url=<span class="string">&quot;https://figshare.com/ndownloader/files/40016014&quot;</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>我们将使用数据集的归一化表示进行降维和可视化，具体来说是移位对数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adata.X = adata.layers[<span class="string">&quot;log1p_norm&quot;</span>]</span><br></pre></td></tr></table></figure>
+<p>我们从这里开始：</p>
+<h2 id="9-1-主成分分析（PCA）"><a href="#9-1-主成分分析（PCA）" class="headerlink" title="9.1 主成分分析（PCA）"></a>9.1 主成分分析（PCA）</h2><p>在我们的数据集中，每个单元格都是一个<code>n_var</code>维向量空间的向量，该向量空间由一些正交基构成。由于scRNA-seq受到“维度灾难”的影响，我们知道并不是所有特征都对理解数据集的基本动态很重要，并且存在内在的冗余性[Grün et al., 2014]。PCA通过对原始数据集的正交转换创建了一组新的不相关变量，即所谓的主成分（PC）。主成分是原始数据集中特征的线性组合，并按方差递减的顺序进行排名以定义转换。通常通过排名，第一个PC成分占最大可能方差的比例。丢弃方差最小的PC，以有效地降低数据的维数而不丢失信息。</p>
+<p>PCA的优点在于它高度可解释且计算效率高。然而，由于scRNA-seq数据集由于去除事件而相当稀疏，因此是高度非线性的，因此使用线性降维技术PCA进行可视化不太合适。 PCA通常用于选择用于下游分析任务的前10-50个PC。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># setting highly variable as highly deviant to use scanpy &#x27;use_highly_variable&#x27; argument in sc.pp.pca</span></span><br><span class="line">adata.var[<span class="string">&quot;highly_variable&quot;</span>] = adata.var[<span class="string">&quot;highly_deviant&quot;</span>]</span><br><span class="line">sc.pp.pca(adata, svd_solver=<span class="string">&quot;arpack&quot;</span>, use_highly_variable=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这段代码的作用是将一个Anndata对象中高度变异的基因设置为高度离群值，以便在使用<code>sc.pp.pca</code>函数中的<code>use_highly_variable</code>参数时能够将其考虑在内。<br>具体来说，代码的第一行将Anndata对象（名为adata）的<code>var</code>属性中的<code>highly_deviant</code>列赋值给<code>highly_variable</code>列，这样就将“高度变异”和“高度离群值”这两个概念联系起来了。<br>在第二行中，使用<code>sc.pp.pca</code>函数对Anndata对象进行主成分分析（PCA）操作。<code>svd_solver</code>参数指定使用的奇异值分解算法为<code>arpack</code>，而<code>use_highly_variable</code>参数指定只使用高变异的基因来进行PCA分析。</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc.pl.pca_scatter(adata, color=<span class="string">&quot;total_counts&quot;</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这行代码是在使用Scanpy库对adata数据进行主成分分析（PCA）并绘制散点图。<br>“sc”是Scanpy库的对象，”.pl”表示Scanpy库中的可视化模块（plotting），”.pca_scatter”表示进行PCA并绘制散点图的函数。<br>“adata”是包含数据的AnnData对象，”color”参数用于指定着色方案。这里使用”total_counts”作为颜色参数，表示将每个细胞的总计数作为颜色显示，以便观察细胞的数量分布情况。</p>
+</blockquote>
+<h2 id="9-2-t-SNE"><a href="#9-2-t-SNE" class="headerlink" title="9.2. t-SNE"></a>9.2. t-SNE</h2><p>t-SNE是一种基于图形的非线性降维技术，将高维数据投影到2D或3D组件中。该方法基于数据点之间的高维欧氏距离定义了一个高斯概率分布。随后，使用学生t分布在低维空间中重新创建概率分布，其中嵌入使用梯度下降进行优化。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc.tl.tsne(adata, use_rep=<span class="string">&quot;X_pca&quot;</span>)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这段代码使用了Scanpy库中的tSNE算法对数据进行降维可视化。<br>具体来说，”sc”是Scanpy库中的一个对象，”.tl”表示工具函数（tool）的子模块，”.tsne()”则是tSNE算法的函数名。在函数中，参数”adata”表示输入的数据集，”use_rep”参数指定了在tSNE算法中使用的数据表示，这里是使用PCA降维后的结果”X_pca”。<br>“use_rep: 可选[str]（默认值：无）<br>使用指定的表示形式。’X’或.obsm中的任何键都是有效的。如果为None，则自动选择表示形式：对于.n_vars &lt;50，使用.X，否则使用’X_pca’。如果不存在’X_pca’，则使用默认参数计算。”</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc.pl.tsne(adata, color=<span class="string">&quot;total_counts&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="https://typorapicz.oss-cn-hangzhou.aliyuncs.com/img/1681972802817-aa5f48ff-2b0f-4596-8cfd-d56d8016d19e.png" alt="image.png"></p>
+<h2 id="9-3-UMA"><a href="#9-3-UMA" class="headerlink" title="9.3. UMA"></a>9.3. UMA</h2><p>UMAP是一种基于图形的非线性降维技术，与t-SNE基本类似。它构建数据集的高维图形表示，并优化低维图形表示，使其在结构上尽可能地类似于原始图形。<br />我们首先对数据进行PCA计算，然后构建一个邻域图。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sc.pp.neighbors(adata)</span><br><span class="line">sc.tl.umap(adata)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>sc.pp.neighbors(adata)</code>用于计算细胞之间的相似度，即找到每个细胞最近的邻居细胞。这个过程通常使用K近邻算法实现。计算细胞之间相似度是聚类和降维分析的基础，可以帮助我们更好地理解和解释细胞之间的关系。</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sc.pl.umap(adata, color=<span class="string">&quot;total_counts&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p><img src="https://typorapicz.oss-cn-hangzhou.aliyuncs.com/img/1681972947635-2738e4c9-edfa-4922-a675-6959ea53c78c.png" alt="image.png"></p>
+<h2 id="9-4-检查质量控制指标"><a href="#9-4-检查质量控制指标" class="headerlink" title="9.4. 检查质量控制指标"></a>9.4. 检查质量控制指标</h2><p>我们现在可以检查我们之前在 PCA、TSNE 或 UMAP 图中计算的质量控制指标，并可能识别出低质量的细胞。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sc.pl.umap(</span><br><span class="line">    adata,</span><br><span class="line">    color=[<span class="string">&quot;total_counts&quot;</span>, <span class="string">&quot;pct_counts_mt&quot;</span>, <span class="string">&quot;scDblFinder_score&quot;</span>, <span class="string">&quot;scDblFinder_class&quot;</span>],</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p><img src="https://typorapicz.oss-cn-hangzhou.aliyuncs.com/img/1681973486823-2cd1ef3f-4559-48b5-8442-9f3d3d28d510.png" alt="image.png"><br /> 我们可以观察到，双体评分高的细胞在UMAP中投影到相同的区域。我们现在会将它们保留在数据集中，但可能稍后会重新审视我们的质量控制策略。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adata.write(<span class="string">&quot;s4d8_dimensionality_reduction.h5ad&quot;</span>)</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="http://example.com">John Doe</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://example.com/2023/04/22/9_Dimensionality%20Reduction/">http://example.com/2023/04/22/9_Dimensionality%20Reduction/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2023/04/28/hello-world/" title="Hello World"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">Previous Post</div><div class="prev_info">Hello World</div></div></a></div><div class="next-post pull-right"><a href="/2023/04/21/8.%20Feature%20selection/" title=""><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">Next Post</div><div class="next_info"></div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">John Doe</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">5</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Catalog</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#9-1-%E4%B8%BB%E6%88%90%E5%88%86%E5%88%86%E6%9E%90%EF%BC%88PCA%EF%BC%89"><span class="toc-number">1.</span> <span class="toc-text">9.1 主成分分析（PCA）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-2-t-SNE"><span class="toc-number">2.</span> <span class="toc-text">9.2. t-SNE</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-3-UMA"><span class="toc-number">3.</span> <span class="toc-text">9.3. UMA</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-4-%E6%A3%80%E6%9F%A5%E8%B4%A8%E9%87%8F%E6%8E%A7%E5%88%B6%E6%8C%87%E6%A0%87"><span class="toc-number">4.</span> <span class="toc-text">9.4. 检查质量控制指标</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/04/28/hello-world/" title="Hello World">Hello World</a><time datetime="2023-04-28T01:04:07.174Z" title="Created 2023-04-28 09:04:07">2023-04-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/04/22/9_Dimensionality%20Reduction/" title="No title">No title</a><time datetime="2023-04-22T13:01:20.122Z" title="Created 2023-04-22 21:01:20">2023-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/04/21/8.%20Feature%20selection/" title="No title">No title</a><time datetime="2023-04-21T14:35:06.487Z" title="Created 2023-04-21 22:35:06">2023-04-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/04/20/7.Normalization/" title="No title">No title</a><time datetime="2023-04-20T14:28:51.386Z" title="Created 2023-04-20 22:28:51">2023-04-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/04/14/6.%20Quality%20Control/" title="No title">No title</a><time datetime="2023-04-14T15:43:20.453Z" title="Created 2023-04-14 23:43:20">2023-04-14</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By John Doe</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Switch Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between single-column and double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
